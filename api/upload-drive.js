@@ -1,6 +1,5 @@
 // api/upload-drive.js
 // Vercel Function — sube foto a Google Drive via OAuth2 refresh token
-// El refresh token no expira — 100% automático sin intervención del usuario
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -24,7 +23,15 @@ export default async function handler(req, res) {
     const nombreArchivo = `${fecha}_${(numero || 'sin-numero').replace(/[^a-zA-Z0-9-]/g, '_')}.jpg`;
 
     const ROOT_FOLDER_ID = process.env.DRIVE_GASTOS_FOLDER_ID;
-    const anioId = await getOrCreateFolder(token, `AÑO ${anio}`, ROOT_FOLDER_ID);
+
+    // IDs de carpetas de año ya existentes en Drive
+    const anioFolders = {
+      '2025': '1dxuMJO2EzGg1T7H8rNr_obYE7VUpL3WT',
+      '2026': '1VJrieY4eYrDlHLvDp73-pDvxUWN58ePF'
+    };
+
+    // Usar carpeta existente o crear nueva automáticamente
+    const anioId = anioFolders[String(anio)] || await getOrCreateFolder(token, `AÑO ${anio}`, ROOT_FOLDER_ID);
     const mesId = await getOrCreateFolder(token, nombreMes, anioId);
     const fileId = await uploadFile(token, imageB64, nombreArchivo, mesId);
 
